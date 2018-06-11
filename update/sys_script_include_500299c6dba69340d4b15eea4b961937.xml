@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<record_update table="sys_script_include">
+    <sys_script_include action="INSERT_OR_UPDATE">
+        <access>public</access>
+        <active>true</active>
+        <api_name>x_maog_iem.IntelliteachEmail</api_name>
+        <client_callable>false</client_callable>
+        <description>Support for Intelliteach inbound email actions.</description>
+        <name>IntelliteachEmail</name>
+        <script><![CDATA[var IntelliteachEmail = Class.create();
+IntelliteachEmail.prototype = (function IntelliteachEmail_proto() {
+	// Strict must disabled for initialize() to access the :this" var.
+	//'use strict';  
+
+	var p = {};
+	var TYPE = p.type = 'IntelliteachEmail';
+
+	function initialize(current, email, log) {
+		// Do not mark strict!
+
+		var that = this || {};
+		log = log || gs;
+		if (!log.isDebugging) log.isDebugging = function() { return false; };
+		if (!log.debug) log.debug = function() {};
+
+
+		function processEscalationEmail() {
+			if (!emh.MatchIncident()) return;
+		}  // End process
+		that.processEscalationEmail = processEscalationEmail;
+
+		function processTicketCloseEmail() {
+			var incGr, incidentNumber;
+			var emh = new EmailHandler(current, email, log);
+			var msg = [];
+
+			if (!emh.MatchIncident()) return;
+
+			current.comments = email.body_text;
+			current.state = 6; // Resolved TODO: Close instead of resolve?
+			current.close_code = 'Solved (Permanently)';  // TODO: Anything better?
+			current.closed_at = gs.minutesAgo(0);  // TODO: Get time from email
+			current.close_notes = 'Received Intelliteach close email for ticket #' + emh.getIqTrackNumber();
+			current.update();
+		}
+		that.processTicketCloseEmail = processTicketCloseEmail;
+
+		function processTicketAttachmentEmail() {
+			var iqTrackNumber;
+			var emh = new EmailHandler(current, email, log);
+			var msg = [];
+
+			if (!emh.MatchIncident()) return;
+
+			current.comments = email.body_text;
+
+			current.update();
+		}
+		that.processTicketAttachmentEmail = processTicketAttachmentEmail;
+
+		function processTicketEscalationEmail() {
+			var shortDesc, userEmail, opened, gr;
+			var emh = new EmailHandler(current, email, log);
+			var msg = [];
+
+			if (!emh.MatchIncident()) return;
+
+			shortDesc = emh.searchBody(/^Summary:\s+(.*)$/m);
+			current.short_description = shortDesc;
+
+			userEmail = emh.searchBody(/^Email:\s+(.*)$/m);
+			if (userEmail) {
+				gr = new GlideRecord('sys_user');
+				if (gr.get('email', userEmail)) {
+					current.caller_id = gr.sys_id;
+				}
+			}
+
+			opened = emh.searchBody(/^Opened:\s+(\d{1,2})\/(\d{1,2})\/(\d{4}) (\d{1,2}):(\d{2}) (AM|PM) Central(?: by (.*))$/m,
+									function() { return emh.makeDateTime(arguments); } );			
+			current.setDisplayValue('assignment_group', 'IT Service Desk');
+
+			current.description = email.body_text;
+
+			current.update();
+		}
+		that.processTicketEscalationEmail = processTicketEscalationEmail;
+
+		//return that;
+	}  // End initialize
+	p.initialize = initialize;
+
+	return p;
+})();  // End IntelliteachEmail_proto]]></script>
+        <sys_class_name>sys_script_include</sys_class_name>
+        <sys_created_by>peter.smith</sys_created_by>
+        <sys_created_on>2018-06-08 16:09:53</sys_created_on>
+        <sys_id>500299c6dba69340d4b15eea4b961937</sys_id>
+        <sys_mod_count>22</sys_mod_count>
+        <sys_name>IntelliteachEmail</sys_name>
+        <sys_package display_value="Intelliteach Email" source="x_maog_iem">ea7eac86db669340d4b15eea4b96196e</sys_package>
+        <sys_policy>read</sys_policy>
+        <sys_scope display_value="Intelliteach Email">ea7eac86db669340d4b15eea4b96196e</sys_scope>
+        <sys_update_name>sys_script_include_500299c6dba69340d4b15eea4b961937</sys_update_name>
+        <sys_updated_by>peter.smith</sys_updated_by>
+        <sys_updated_on>2018-06-11 19:41:29</sys_updated_on>
+    </sys_script_include>
+</record_update>

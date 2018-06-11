@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<record_update table="sys_script_include">
+    <sys_script_include action="INSERT_OR_UPDATE">
+        <access>public</access>
+        <active>true</active>
+        <api_name>x_maog_iem.EmailHandler</api_name>
+        <client_callable>false</client_callable>
+        <description>Interim solution to parsing of emails</description>
+        <name>EmailHandler</name>
+        <script><![CDATA[var EmailHandler = Class.create();
+EmailHandler.prototype = (function EmailHandler_proto() {
+	var p = {};
+	var TYPE = p.type = 'EmailHandler';
+
+	function padStart(str, targetLength, padString) {
+		targetLength = targetLength>>0; //truncate if number or convert non-number to 0;
+		padString = String((typeof padString !== 'undefined' ? padString : ' '));
+		if (str.length > targetLength) {
+			return String(str);
+		}
+		else {
+			targetLength = targetLength-this.length;
+			if (targetLength > padString.length) {
+				padString += padString.repeat(targetLength/padString.length); //append to original to ensure we are longer than needed
+			}
+			return padString.slice(0,targetLength) + String(str);
+		}
+	}
+
+	p.initialize = function(current, email, log) {
+		var that = this || {};
+		log = log || gs;
+		if (!log.isDebugging) log.isDebugging = function() { return false; };
+		if (!log.debug) log.debug = function() {};
+
+		var emailSubject = email.subject;
+		log.info('Email Subject: ' + emailSubject);
+		var emailBodyText = email.body_text;
+		log.info('Email Body Text: ' + emailBodyText);
+		var originalIncidentSysId = current.sys_id + '';
+
+		function someday() {
+			var stream = new Stream(current.body_text + '', log);
+			var varFinder = new VariableFinder(stream, log);
+			var resultMgr = new ResultManager(varFinder, log);
+			var result = resultMgr.parse();
+		}
+
+		searchBody = function searchBody(regExp, fn) {
+			var reResult, text;
+
+			reResult = regExp.exec(emailBodyText);
+			if (reResult) {
+				log.info('EmailHandler.searchBody(' + regExp + ') found ' + reResult[1]);
+				if (fn) return fn(reResult, emailBodyText, regExp);
+				return reResult[1];
+			} else {
+				log.info('EmailHandler.searchBody did not find ' + regExp);
+			}
+
+			return '';
+		};
+		that.searchBody = searchBody;
+
+		function search(regExp, fn) {
+			var reResult;
+
+			reResult = regExp.exec(emailSubject);
+			if (reResult) {
+				log.info('EmailHandler.search(' + regExp + ') found ' + reResult[1]);
+				if (fn) return fn(reResult, emailSubject, regExp);
+				return reResult[1];
+			}  else {
+				log.info('EmailHandler.search did not find ' + regExp);
+			}
+			return searchBody(regExp);
+		}
+		that.search = search;
+
+		function makeDateTime(reResult, text, regExp) {
+			var dateTime, month, day, year, hour, minute, ampm, zone, dateStr;
+			
+			if (!reResult || reResult.length < 7) {
+				log.error('Could not parse time ' + regExp);
+				return new GlideDateTime();
+			}
+
+			try {
+				dateTime = new GlideDateTime();
+				month = padStart(reResult[1], 2, '0');
+				day = padStart(reResult[2], 2, '0');
+				year = padStart(reResult[3], 4, '0');
+				hour = padStart(reResult[4], 2, '0');
+				minute = padStart(reResult[5], 2, '0');
+				ampm = reResult[6];
+
+				if (ampm === 'PM') hour = (12 + hour) + '';
+
+				dateStr = [year, '-', month, '-', day, ' ',
+						   hour, ':', minute, ':', '00'].join();
+				dateTime.setDisplayValueInternal(dateStr, 'yyyy-MM-dd HH:mm:ss');
+			} catch (e) {
+				log.error('makeDateTime(' + reResult[0] +') failed: ' + e.message + ' - ' + dateTime.getErrorMsg());
+			} finally {
+				return dateTime.getValue();
+			}
+		}
+		that.makeDateTime = makeDateTime;
+
+		// Works for single-line properties only.
+		function getProperty(name) {
+			var regExp = new RegExp('^' + name + ':\s+(.*)$');
+			return searchBody(regExp);
+		}
+
+		function getIqTrackNumber() { return search(/Ticket#:?\s+(\d+)/); }
+		that.getIqTrackNumber = getIqTrackNumber;
+
+		function getIncidentNumber() { return search(/\b(INC\d{7})[\s.]/); }
+		that.getIncidentNumber = getIncidentNumber;
+
+		function findIncident(fieldName, fieldValue) {
+			var gr;
+
+			if (!fieldValue) return null;
+
+			gr = new GlideRecord('incident');
+			gr.addQuery(fieldName, fieldValue);
+			gr.setLimit(2);
+			gr.query();
+			if (gr.getRowCount() > 1) {
+				log.error('More than one Incident matches ' + fieldName + '=' + fieldValue);
+				return null;
+			}
+			if (!gr.next()) return null;
+			return gr;
+		}
+
+		// Find the matching incident if possible.
+		// Switch to it if necessary.
+		// Return false if anything went wrong.
+		that.MatchIncident = function() {
+			var answer = true;
+			var emailIncNumber = getIncidentNumber();
+			var emailIqNumber = getIqTrackNumber();
+			var currentSysId = current.sys_id + '';
+			var currentNumber = current.number + '';
+			var incGr = findIncident('number', emailIncNumber);
+			var incGrSysId = incGr ? incGr.sys_id + '' : null;
+			var iqGr = findIncident('x_maog_iem_iqtrack_ticket', emailIqNumber);
+			var iqGrSysId = iqGr ? iqGr.sys_id + '' : null;
+
+			if (incGr && iqGr && incGrSysId !== iqGrSysId) {
+				log.error('Found conflicting records: ' +
+						  '[' + incGr.number + ' ' + incGr.x_maog_iem_iqtrack_ticket + '] ' +
+						  '[' + iqGr.number + ' ' + iqGr.x_maog_iem_iqtrack_ticket + ']');
+				answer = false;
+			}
+
+			log.info('current=' + current.number + 
+					 ', incGr=' + (incGr ? incGr.number : 'null') +
+					 ', iqGr=' + (iqGr ? iqGr.number : 'null'));
+
+			if (incGr && incGrSysId !== currentSysId || iqGr && iqGrSysId !== currentSysId) {
+				log.info('Switching from ' + current.number + ' to ' + (incGr || iqGr).number);
+				if (current.sys_id + '' === (incGrSysId || iqGrSysId)) {
+					log.info('Incident ' + (incGr || iqGr).number + 'already matched');
+				} else {
+					if (!current.get('sys_id', incGrSysId || iqGrSysId)) {
+						log.error('Could not switch from ' +
+								  (current.number ? current.number : 'new incident') + ' to ' +
+								  (incGr ? incGr.number : iqGr.number));
+						answer = false;
+					}
+				}
+			}
+
+			log.info('IQTrack Ticket ' + emailIqNumber + ' matched ' + current.number);
+			current.x_maog_iem_iqtrack_ticket = emailIqNumber;
+			return answer;
+		};
+
+		that.switchedCurrent = function() {
+			return current.sys_id + '' !== originalIncidentSysId;
+		};
+
+		return that;
+	}; // End initialize
+
+	return p;
+})();  // End EmailHandler_proto]]></script>
+        <sys_class_name>sys_script_include</sys_class_name>
+        <sys_created_by>peter.smith</sys_created_by>
+        <sys_created_on>2018-06-08 16:13:47</sys_created_on>
+        <sys_id>558291c6dba69340d4b15eea4b9619f4</sys_id>
+        <sys_mod_count>37</sys_mod_count>
+        <sys_name>EmailHandler</sys_name>
+        <sys_package display_value="Intelliteach Email" source="x_maog_iem">ea7eac86db669340d4b15eea4b96196e</sys_package>
+        <sys_policy>read</sys_policy>
+        <sys_scope display_value="Intelliteach Email">ea7eac86db669340d4b15eea4b96196e</sys_scope>
+        <sys_update_name>sys_script_include_558291c6dba69340d4b15eea4b9619f4</sys_update_name>
+        <sys_updated_by>peter.smith</sys_updated_by>
+        <sys_updated_on>2018-06-11 19:43:56</sys_updated_on>
+    </sys_script_include>
+</record_update>

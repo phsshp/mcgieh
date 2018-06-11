@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<database>
+    <element attributes="update_synch=true" extends="sys_metadata" label="Syntax Definition" max_length="40" name="x_maog_iem_syntax_definition" type="collection">
+        <element hint="Handle for loading the syntax" label="Name" max_length="40" name="name" type="string"/>
+    </element>
+</database>

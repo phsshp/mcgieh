@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<record_update sys_domain="global" table="sysevent_in_email_action">
+    <sysevent_in_email_action action="INSERT_OR_UPDATE">
+        <action>record_action</action>
+        <active>true</active>
+        <assignment_operator/>
+        <condition_script/>
+        <description/>
+        <event_name>email.read</event_name>
+        <filter_condition table="sys_email">user=iqtrack@iqtrack.com^subjectSTARTSWITHEscalated Ticket#^EQ<item endquery="false" field="user" goto="false" newquery="false" operator="=" or="false" value="iqtrack@iqtrack.com"/>
+            <item endquery="false" field="subject" goto="false" newquery="false" operator="STARTSWITH" or="false" value="Escalated Ticket#"/>
+            <item endquery="true" field="" goto="false" newquery="false" operator="=" or="false" value=""/>
+        </filter_condition>
+        <from/>
+        <name>Intelliteach Ticket Attachment Email</name>
+        <order>60</order>
+        <reply_email/>
+        <required_roles/>
+        <script><![CDATA[(function runAction(/*GlideRecord*/ current, /*GlideRecord*/ event, /*EmailWrapper*/ email, /*ScopedEmailLogger*/ logger, /*EmailClassifier*/ classifier) {
+
+	new IntelliteachEmail(current, email, logger).processTicketEscalationEmail();
+
+})(current, event, email, logger, classifier);]]></script>
+        <stop_processing>true</stop_processing>
+        <sys_class_name>sysevent_in_email_action</sys_class_name>
+        <sys_created_by>peter.smith</sys_created_by>
+        <sys_created_on>2018-06-08 16:30:05</sys_created_on>
+        <sys_domain>global</sys_domain>
+        <sys_domain_path>/</sys_domain_path>
+        <sys_id>de07114adba69340d4b15eea4b96193e</sys_id>
+        <sys_mod_count>3</sys_mod_count>
+        <sys_name>Intelliteach Ticket Attachment Email</sys_name>
+        <sys_overrides/>
+        <sys_package display_value="Intelliteach Email" source="x_maog_iem">ea7eac86db669340d4b15eea4b96196e</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="Intelliteach Email">ea7eac86db669340d4b15eea4b96196e</sys_scope>
+        <sys_update_name>sysevent_in_email_action_de07114adba69340d4b15eea4b96193e</sys_update_name>
+        <sys_updated_by>peter.smith</sys_updated_by>
+        <sys_updated_on>2018-06-11 19:45:13</sys_updated_on>
+        <table>incident</table>
+        <template/>
+        <type>new</type>
+    </sysevent_in_email_action>
+</record_update>

@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<record_update table="sys_script_include">
+    <sys_script_include action="INSERT_OR_UPDATE">
+        <access>package_private</access>
+        <active>false</active>
+        <api_name>x_maog_iem.ParamParser</api_name>
+        <client_callable>false</client_callable>
+        <description>Tries to parse a file that defines variables on lines, like "^parameter: value$" - but sometimes expects a variable to cross multiple lines with no terminator.  To make things worse, a "^parameter: value$" within a multiline parameter cannot be differentiated from one that ends the multililne parameter.&#13;
+&#13;
+This parser builds a syntax tree that can be traversed to find the most likely correct interpretation.</description>
+        <name>ParamParser</name>
+        <script><![CDATA[var ParamParser = Class.create();
+ParamParser.prototype = (function ParamParser_proto() {
+	'use strict';
+
+	var p = {};
+	var TYPE = 'ParamParser';
+
+	p.initialize = function(syntax, readLine, log) {
+		var that = this || {};
+		log = log || gs;
+
+		var varCtl;        // Control info for current variable
+		var values = [];   // Array of lines representing current value
+		var varName;       // Current variable's name
+		var varValue;      // Current variable's value
+		var reResult;      // Result of RegExp match for start of variable (re)
+
+		var	varAttrs = { // Variable Attributes
+			//  vn:   Variable name to add to results
+			//  em:   Variable is an end of message marker (true/false)
+			//  jl:   Variable starts a journal list (true/false)
+			//  js:   Variable is the start of the next journal entry (true/false)
+			//  jo:   Variable is an object within a journal entry (true/false)
+			//  ml:   Variable is multiline (true/false)
+			'Action:' :           { vn: 'action',       jo: true, ml: true },
+			'Category:' :         { vn: 'category' },
+			'Created:' :          { vn: 'created' },
+			'Commands:' :         { vn: 'commands' },
+			'Due:' :              { vn: 'due' },
+			'Email:' :            { vn: 'email' },
+			'-----------------' : { vn: 'eom',          em: true },
+			'IQMobile' :          { vn: 'iqMobile' },
+			'--- Performed by' :  { vn: 'journalEntry', js: true },
+			'Location:' :         { vn: 'location' },
+			'Opened:' :           { vn: 'opened' },
+			'Owner:' :            { vn: 'owner' },
+			'Phone/Ext:' :        { vn: 'phone' },
+			'Priority:' :         { vn: 'priority' },
+			'Private Note:':      { vn: 'workNotes',    jl: true },
+			'Summary:' :          { vn: 'summary',      ml: true },
+			'Requester:' :        { vn: 'requester' },
+			'Result:' :           { vn: 'result',       jo: true, ml: true },
+			'Ticket#:' :          { vn: 'ticket' },
+			'Tasks:' :            { vn: 'comments',     jl: true },
+		};
+
+		// Build the RegExp to match the beginning of a variable
+		var regExp = (function buildLineStartRegexp() {
+			var phrases = []; // Keys from varAttrs
+			var rs = [];      // regexp string
+			var regExp;
+
+			for (var phrase in varAttrs) {
+				phrases.push(phrase);
+			}
+
+			phrases = phrases.sort();
+
+			rs.push('^(');
+			rs.push(phrases.join('|'));
+			rs.push(')');
+			rs = rs.join('');
+			regExp = new RegExp(rs);
+			return regExp;
+		})();  // End lineStartRegExp
+
+		function atNewVarStart() { return reResult ? true : false; }
+		function flushNewVar() { reResult = null; }
+		function haveCurrentVar() { return varCtl ? true : false; }
+		function isMultiLine() { return varCtl && varCtl.ml; }
+		that.isMultiLine = isMultiLine;
+
+		that.getVarName = function() { return varName; };
+		that.getVarValue = function() { return varValue; };
+		that.isEndOfMessage = function() { return varCtl.em; };
+		that.isJournalList = function() { return varCtl.jl; };
+		that.isJournalEntryStart = function() { return varCtl.js; };
+		that.isJournalEntryObject = function() { return varCtl.jo; };
+		that.getStrategyIndex = function() { return varCtl.si; };
+
+		function startCurrentVar() {
+			var rawName = reResult[0];
+			varCtl = varAttrs[rawName];
+			varName = varCtl.vn;
+			varValue = stream.getCurrentLine().slice(rawName.length).trim();
+			varName = varName.replace(/[:]$/, '');
+			values = [ varValue ];
+		}
+
+		function findNextVar() {
+			while (!reResult && stream.hasMore()) {
+				reResult = regExp.exec(stream.readLine());
+			}
+			return reResult ? true : false;
+		}
+
+		function readMultilineVar() {
+			while (!reResult && stream.hasMore()) {
+				reResult = regExp.exec(stream.readLine());
+				if (!reResult) {
+					values.push(stream.getCurrentLine());
+				}
+			}
+			if (values.length > 1) {
+				varValue = values.join('/n');
+			}
+			return reResult !== null;
+		}
+
+		// Read ahead to find the start of the next variable
+		// (there is no variable end delimeter.)
+		that.hasMore = function() {
+			if (atNewVarStart()) return true;
+			return findNextVar();
+		};
+
+
+		// Read the new variable and make it current.
+		that.readVar = function() {
+			startCurrentVar();
+			flushNewVar();
+			if (isMultiLine()) {
+				readMultilineVar();
+			}
+			if (log.isDebugging()) {
+				log.debug('readVar: "' + varName + '"="' + varValue + '"');
+			}
+		};
+
+		return that;
+	};
+
+	return p;
+})();]]></script>
+        <sys_class_name>sys_script_include</sys_class_name>
+        <sys_created_by>peter.smith</sys_created_by>
+        <sys_created_on>2018-06-08 14:10:58</sys_created_on>
+        <sys_id>5805b842db269340d4b15eea4b96196b</sys_id>
+        <sys_mod_count>2</sys_mod_count>
+        <sys_name>ParamParser</sys_name>
+        <sys_package display_value="Intelliteach Email" source="x_maog_iem">ea7eac86db669340d4b15eea4b96196e</sys_package>
+        <sys_policy>read</sys_policy>
+        <sys_scope display_value="Intelliteach Email">ea7eac86db669340d4b15eea4b96196e</sys_scope>
+        <sys_update_name>sys_script_include_5805b842db269340d4b15eea4b96196b</sys_update_name>
+        <sys_updated_by>peter.smith</sys_updated_by>
+        <sys_updated_on>2018-06-11 19:45:40</sys_updated_on>
+    </sys_script_include>
+</record_update>

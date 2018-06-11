@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<record_update table="sys_script_include">
+    <sys_script_include action="INSERT_OR_UPDATE">
+        <access>package_private</access>
+        <active>false</active>
+        <api_name>x_maog_iem.LineReader</api_name>
+        <client_callable>false</client_callable>
+        <description>Line-oriented input stream like Java's LineReader that takes a string like Java's StringReader.</description>
+        <name>LineReader</name>
+        <script><![CDATA[var LineReader = Class.create();
+LineReader.prototype = (function LineReader_proto() {
+	'use strict';
+
+	var p = {};
+	var TYPE = 'LineReader';
+
+	p.initialize = function(str, log) {
+		var that = this || {};
+		log = log || gs;
+		var lines;  // Array of lines from str
+		var lineNo = 0;  // Index into array
+		var line = 'Stream.next() was not called';  // Current line
+
+		// Somehow str === '' becomes str === undefined
+		lines = str ? str.split('\n') : [ '' ];
+		str = null; // Allow GC
+
+		// Return true if the stream is not empty yet.
+		that.hasMore = function() { return lineNo < lines.length; };
+
+		// Read the next line.
+		that.readLine = function() {
+			line = lines[lineNo];
+			lineNo = lineNo + 1;
+			//log.debug('Stream.readLine: ' + line);
+			return line;
+		};
+
+		// Return information without advancing the stream.
+		that.getCurrentLine = function() { return line; };
+		that.getCurrentLineNumber = function() { return lineNo; };
+		that.getNumberedLine = function() { return (lineNo + 1) + ': "' + line + '"'; };
+
+		// Close the stream, even if the end wasn't reached.
+		that.close = function() {
+			lineNo = lines.length;
+			line = 'STREAM CLOSED!';
+		};
+		return that;
+	};
+
+	return p;
+})();
+
+LineReader.test = function test() {
+	var lr = new LineReader('a\nb\nc\n');
+	var l;
+
+	for (l = lr.readLine(); l; l = lr.readLine()) {
+		gs.info(l);
+	}
+};]]></script>
+        <sys_class_name>sys_script_include</sys_class_name>
+        <sys_created_by>peter.smith</sys_created_by>
+        <sys_created_on>2018-06-08 13:50:38</sys_created_on>
+        <sys_id>778ea0c6db669340d4b15eea4b961930</sys_id>
+        <sys_mod_count>2</sys_mod_count>
+        <sys_name>LineReader</sys_name>
+        <sys_package display_value="Intelliteach Email" source="x_maog_iem">ea7eac86db669340d4b15eea4b96196e</sys_package>
+        <sys_policy>read</sys_policy>
+        <sys_scope display_value="Intelliteach Email">ea7eac86db669340d4b15eea4b96196e</sys_scope>
+        <sys_update_name>sys_script_include_778ea0c6db669340d4b15eea4b961930</sys_update_name>
+        <sys_updated_by>peter.smith</sys_updated_by>
+        <sys_updated_on>2018-06-11 19:45:35</sys_updated_on>
+    </sys_script_include>
+</record_update>

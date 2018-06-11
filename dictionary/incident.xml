@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<database>
+    <element attributes="email_client=true,all_tables.query_hints=true,query_hints=true,hasWorkflow=true,live_feed=true" audit="true" extends="task" label="Incident" max_length="40" name="incident" sizeclass="330" text_index="true" type="collection">
+        <element hint="IQTrack Ticket Number from Intelliteach" label="IQTrack Ticket" max_length="40" name="x_maog_iem_iqtrack_ticket" type="string"/>
+    </element>
+</database>

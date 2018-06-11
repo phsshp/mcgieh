@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<record_update>
+    <sys_documentation element="multi_line" label="Multi-Line" language="en" table="x_maog_iem_syntax_parameter">
+        <sys_documentation action="INSERT_OR_UPDATE">
+            <element>multi_line</element>
+            <help/>
+            <hint/>
+            <label>Multi-Line</label>
+            <language>en</language>
+            <name>x_maog_iem_syntax_parameter</name>
+            <plural>Multi-Lines</plural>
+            <sys_class_name>sys_documentation</sys_class_name>
+            <sys_created_by>peter.smith</sys_created_by>
+            <sys_created_on>2018-06-08 14:23:46</sys_created_on>
+            <sys_id>882a34cadb669340d4b15eea4b961954</sys_id>
+            <sys_mod_count>0</sys_mod_count>
+            <sys_name>Multi-Line</sys_name>
+            <sys_package display_value="Intelliteach Email" source="x_maog_iem">ea7eac86db669340d4b15eea4b96196e</sys_package>
+            <sys_policy/>
+            <sys_scope display_value="Intelliteach Email">ea7eac86db669340d4b15eea4b96196e</sys_scope>
+            <sys_update_name>sys_documentation_x_maog_iem_syntax_parameter_multi_line_en</sys_update_name>
+            <sys_updated_by>peter.smith</sys_updated_by>
+            <sys_updated_on>2018-06-08 14:23:46</sys_updated_on>
+            <url/>
+            <url_target/>
+        </sys_documentation>
+    </sys_documentation>
+</record_update>

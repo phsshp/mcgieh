@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<database>
+    <element attributes="update_synch=true" extends="sys_metadata" label="Syntax Parameter" max_length="40" name="x_maog_iem_syntax_parameter" type="collection">
+        <element label="Handle" max_length="40" name="handle" type="string"/>
+        <element label="Multi-Line" max_length="40" name="multi_line" type="boolean"/>
+        <element label="Prefix" max_length="100" name="prefix" type="string"/>
+        <element label="Syntax Definition" max_length="32" name="syntax_definition" reference="x_maog_iem_syntax_definition" type="reference"/>
+        <index name="index">
+            <element name="syntax_definition"/>
+        </index>
+    </element>
+</database>
