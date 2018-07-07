@@ -13,13 +13,12 @@ EmailHandler.prototype = (function EmailHandler_proto() {
 	var TYPE = p.type = 'EmailHandler';
 
 	function padStart(str, targetLength, padString) {
-		targetLength = targetLength>>0; //truncate if number or convert non-number to 0;
 		padString = String((typeof padString !== 'undefined' ? padString : ' '));
 		if (str.length > targetLength) {
 			return String(str);
 		}
 		else {
-			targetLength = targetLength-this.length;
+			targetLength = targetLength-str.length;
 			if (targetLength > padString.length) {
 				padString += padString.repeat(targetLength/padString.length); //append to original to ensure we are longer than needed
 			}
@@ -29,9 +28,7 @@ EmailHandler.prototype = (function EmailHandler_proto() {
 
 	p.initialize = function(current, email, log) {
 		var that = this || {};
-		log = log || gs;
-		if (!log.isDebugging) log.isDebugging = function() { return false; };
-		if (!log.debug) log.debug = function() {};
+		log = new EmailLogWrapper(log);
 
 		var emailSubject = email.subject;
 		log.info('Email Subject: ' + emailSubject);
@@ -46,13 +43,23 @@ EmailHandler.prototype = (function EmailHandler_proto() {
 			var result = resultMgr.parse();
 		}
 
+		function reDebug(re) {
+			var buf = [];
+			for (var i = 0; i < re.length; i++) {
+				buf.push(re[i]);
+			}
+			return '[' + buf.join(', ') + ']';
+		}
+		
 		searchBody = function searchBody(regExp, fn) {
 			var reResult, text;
 
 			reResult = regExp.exec(emailBodyText);
 			if (reResult) {
-				log.info('EmailHandler.searchBody(' + regExp + ') found ' + reResult[1]);
-				if (fn) return fn(reResult, emailBodyText, regExp);
+				log.info('EmailHandler.searchBody(' + regExp + ') found ' + reDebug(reResult));
+				if (fn) {
+					return fn(reResult, emailBodyText, regExp);
+				}
 				return reResult[1];
 			} else {
 				log.info('EmailHandler.searchBody did not find ' + regExp);
@@ -67,8 +74,10 @@ EmailHandler.prototype = (function EmailHandler_proto() {
 
 			reResult = regExp.exec(emailSubject);
 			if (reResult) {
-				log.info('EmailHandler.search(' + regExp + ') found ' + reResult[1]);
-				if (fn) return fn(reResult, emailSubject, regExp);
+				log.info('EmailHandler.search(' + regExp + ') found ' + reDebug(reResult));
+				if (fn) {
+					return fn(reResult, emailSubject, regExp);
+				}
 				return reResult[1];
 			}  else {
 				log.info('EmailHandler.search did not find ' + regExp);
@@ -94,15 +103,16 @@ EmailHandler.prototype = (function EmailHandler_proto() {
 				minute = padStart(reResult[5], 2, '0');
 				ampm = reResult[6];
 
-				if (ampm === 'PM') hour = (12 + hour) + '';
+				if (ampm === 'PM') hour = (12 + Number(hour)) + '';
 
 				dateStr = [year, '-', month, '-', day, ' ',
-						   hour, ':', minute, ':', '00'].join();
-				dateTime.setDisplayValueInternal(dateStr, 'yyyy-MM-dd HH:mm:ss');
+						   hour, ':', minute, ':', '00'].join('');
+				log.info('dateStr=' + dateStr);
+				dateTime.setDisplayValueInternal(dateStr);
 			} catch (e) {
 				log.error('makeDateTime(' + reResult[0] +') failed: ' + e.message + ' - ' + dateTime.getErrorMsg());
 			} finally {
-				return dateTime.getValue();
+				return dateTime;
 			}
 		}
 		that.makeDateTime = makeDateTime;
@@ -193,13 +203,13 @@ EmailHandler.prototype = (function EmailHandler_proto() {
         <sys_created_by>peter.smith</sys_created_by>
         <sys_created_on>2018-06-08 16:13:47</sys_created_on>
         <sys_id>558291c6dba69340d4b15eea4b9619f4</sys_id>
-        <sys_mod_count>37</sys_mod_count>
+        <sys_mod_count>45</sys_mod_count>
         <sys_name>EmailHandler</sys_name>
         <sys_package display_value="Intelliteach Email" source="x_maog_iem">ea7eac86db669340d4b15eea4b96196e</sys_package>
         <sys_policy>read</sys_policy>
         <sys_scope display_value="Intelliteach Email">ea7eac86db669340d4b15eea4b96196e</sys_scope>
         <sys_update_name>sys_script_include_558291c6dba69340d4b15eea4b9619f4</sys_update_name>
         <sys_updated_by>peter.smith</sys_updated_by>
-        <sys_updated_on>2018-06-11 19:43:56</sys_updated_on>
+        <sys_updated_on>2018-06-11 21:49:27</sys_updated_on>
     </sys_script_include>
 </record_update>

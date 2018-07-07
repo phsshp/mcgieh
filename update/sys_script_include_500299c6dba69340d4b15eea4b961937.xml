@@ -19,10 +19,7 @@ IntelliteachEmail.prototype = (function IntelliteachEmail_proto() {
 		// Do not mark strict!
 
 		var that = this || {};
-		log = log || gs;
-		if (!log.isDebugging) log.isDebugging = function() { return false; };
-		if (!log.debug) log.debug = function() {};
-
+		log = new EmailLogWrapper(log);
 
 		function processEscalationEmail() {
 			if (!emh.MatchIncident()) return;
@@ -51,6 +48,12 @@ IntelliteachEmail.prototype = (function IntelliteachEmail_proto() {
 			var msg = [];
 
 			if (!emh.MatchIncident()) return;
+			
+			if (current.active + '' !== 'true' || current.state + '' === 6) {
+				log.info('Ignoring attachment email: active=' + current.active +
+						', state=', current.state.getChoiceValue());
+				return;
+			}
 
 			current.comments = email.body_text;
 
@@ -76,10 +79,17 @@ IntelliteachEmail.prototype = (function IntelliteachEmail_proto() {
 				}
 			}
 
-			opened = emh.searchBody(/^Opened:\s+(\d{1,2})\/(\d{1,2})\/(\d{4}) (\d{1,2}):(\d{2}) (AM|PM) Central(?: by (.*))$/m,
-									function() { return emh.makeDateTime(arguments); } );			
-			current.setDisplayValue('assignment_group', 'IT Service Desk');
+			current.opened_at = emh.searchBody(
+				/^Opened:\s+(\d{1,2})\/(\d{1,2})\/(\d{4}) (\d{1,2}):(\d{2}) (AM|PM) Central(?: by (.*))$/m,
+				emh.makeDateTime);			
 
+			current.due_date = emh.searchBody(
+				/^Due:\s+(\d{1,2})\/(\d{1,2})\/(\d{4}) (\d{1,2}):(\d{2}) (AM|PM)/m,
+				emh.makeDateTime);	
+			
+			// SetDisplayValue throws com.glide.script.fencing.MethodNotAllowedException 
+			current.assignment_group = 'cbd20bdcdb730300f6dc5eea4b9619a3'; // IT Service Desk
+			
 			current.description = email.body_text;
 
 			current.update();
@@ -96,13 +106,13 @@ IntelliteachEmail.prototype = (function IntelliteachEmail_proto() {
         <sys_created_by>peter.smith</sys_created_by>
         <sys_created_on>2018-06-08 16:09:53</sys_created_on>
         <sys_id>500299c6dba69340d4b15eea4b961937</sys_id>
-        <sys_mod_count>22</sys_mod_count>
+        <sys_mod_count>31</sys_mod_count>
         <sys_name>IntelliteachEmail</sys_name>
         <sys_package display_value="Intelliteach Email" source="x_maog_iem">ea7eac86db669340d4b15eea4b96196e</sys_package>
         <sys_policy>read</sys_policy>
         <sys_scope display_value="Intelliteach Email">ea7eac86db669340d4b15eea4b96196e</sys_scope>
         <sys_update_name>sys_script_include_500299c6dba69340d4b15eea4b961937</sys_update_name>
         <sys_updated_by>peter.smith</sys_updated_by>
-        <sys_updated_on>2018-06-11 19:41:29</sys_updated_on>
+        <sys_updated_on>2018-06-11 22:52:08</sys_updated_on>
     </sys_script_include>
 </record_update>

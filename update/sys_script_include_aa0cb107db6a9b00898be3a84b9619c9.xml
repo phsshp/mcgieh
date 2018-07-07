@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<record_update table="sys_script_include">
+    <sys_script_include action="INSERT_OR_UPDATE">
+        <access>public</access>
+        <active>true</active>
+        <api_name>x_maog_iem.EmailLogWrapper</api_name>
+        <client_callable>false</client_callable>
+        <description>Wrap an email log and redirect debugging to the regular log.</description>
+        <name>EmailLogWrapper</name>
+        <script><![CDATA[var EmailLogWrapper = Class.create();
+EmailLogWrapper.prototype = {
+	initialize: function(emailLog) {
+		emailLog = emailLog || gs;
+		
+		this.error = function() { emailLog.error.apply(emailLog, arguments); };
+		this.warn = function() { emailLog.warn.apply(emailLog, arguments); };
+		this.info = function() { emailLog.info.apply(emailLog, arguments); };
+		if (emailLog.isDebugging) {
+			this.isDebugging = function() { emailLog.isDebugging.apply(emailLog, arguments); };
+			this.debug = function () { emailLog.debug.apply(emailLog, arguments); };
+		} else {
+			this.isDebugging = function() { gs.isDebugging.apply(gs, arguments); };
+			this.debug = function() { gs.debug.apply(gs, arguments); };
+		}
+	},
+
+	type: 'EmailLogWrapper'
+};]]></script>
+        <sys_class_name>sys_script_include</sys_class_name>
+        <sys_created_by>peter.smith</sys_created_by>
+        <sys_created_on>2018-06-11 21:46:11</sys_created_on>
+        <sys_id>aa0cb107db6a9b00898be3a84b9619c9</sys_id>
+        <sys_mod_count>7</sys_mod_count>
+        <sys_name>EmailLogWrapper</sys_name>
+        <sys_package display_value="Intelliteach Email" source="x_maog_iem">ea7eac86db669340d4b15eea4b96196e</sys_package>
+        <sys_policy>read</sys_policy>
+        <sys_scope display_value="Intelliteach Email">ea7eac86db669340d4b15eea4b96196e</sys_scope>
+        <sys_update_name>sys_script_include_aa0cb107db6a9b00898be3a84b9619c9</sys_update_name>
+        <sys_updated_by>peter.smith</sys_updated_by>
+        <sys_updated_on>2018-06-11 23:08:50</sys_updated_on>
+    </sys_script_include>
+</record_update>
