@@ -42,5 +42,6 @@
         <uncancelable>false</uncancelable>
         <view_name/>
         <window_name/>
+        <x_maog_vtbb_board/>
     </sys_app_module>
 </record_update>
