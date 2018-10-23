@@ -2,7 +2,7 @@
 <record_update table="gsw_change_log">
     <gsw_change_log action="INSERT_OR_UPDATE">
         <change_date>2018-06-12 13:49:49</change_date>
-        <changed_by display_value="Peter Smith">4e3f4c7cdb63fa0024c9dfea5e961956</changed_by>
+        <changed_by display_value="Peter  Smith ">4e3f4c7cdb63fa0024c9dfea5e961956</changed_by>
         <content display_value="Check UI Action Conditions Before Execution *">0461d72b11232200964f016bcc1bdd9e</content>
         <related_change_log_entry/>
         <related_task_entry/>

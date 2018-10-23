@@ -52,15 +52,15 @@
         <sys_class_name>sys_dictionary</sys_class_name>
         <sys_created_by>peter.smith</sys_created_by>
         <sys_created_on>2018-06-08 14:15:54</sys_created_on>
-        <sys_id>6d38b4cadb669340d4b15eea4b96196b</sys_id>
+        <sys_id>52bf57d3db2a9f0005dce3a84b96192f</sys_id>
         <sys_mod_count>0</sys_mod_count>
         <sys_name>Name</sys_name>
         <sys_package display_value="Intelliteach Email" source="x_maog_iem">ea7eac86db669340d4b15eea4b96196e</sys_package>
         <sys_policy/>
         <sys_scope display_value="Intelliteach Email">ea7eac86db669340d4b15eea4b96196e</sys_scope>
         <sys_update_name>sys_dictionary_x_maog_iem_syntax_definition_name</sys_update_name>
-        <sys_updated_by>peter.smith</sys_updated_by>
-        <sys_updated_on>2018-06-08 14:15:54</sys_updated_on>
+        <sys_updated_by>system</sys_updated_by>
+        <sys_updated_on>2018-06-12 23:39:42</sys_updated_on>
         <table_reference>false</table_reference>
         <text_index>false</text_index>
         <unique>false</unique>
